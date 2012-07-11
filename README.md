@@ -24,6 +24,7 @@ It basically just provides serializing to / from JSON with an identity map and l
 * Lifecycle states
 * Lazy RecordArray like Ember Data
 * Use a state machine for lifecycles instead of properties
+* Non-embedded associations
 
 ## Models
 
@@ -130,9 +131,78 @@ If you want to change it for all Schemas, reopen `EmberMapper.Schema`
 
 ## Stores
 
-TODO ...
+A Store takes a Schema and loads/saves it to the intertubes.
 
+    peopleStore = EmberMapper.Store.create({
+      schema: peopleSchema
+    })
 
-## Validating
+Requests return immediately and are loaded when data arrives.
+
+This returns a Person right away with its ID set to 123, it will have `isLoading` set to true.
+
+    peopleStore.find(123)
+
+This returns a RecordArray with a content of `[]`, again `isLoading` will be true until data arrives.
+
+    peopleStore.findQuery({
+      named: "bob"
+    })
+
+You're encouraged to write your own custom finders. Instead of your code being littered with:
+
+    peopleStore.findQuery({
+      project_id: App.getPath("current.project.id")
+    })
+
+You can have:
+
+    peopleStore.inProject(App.getPath("current.project"))
+    peopleStore.named("bob")
+    etc...
+
+Simply add your own finder which calls the built in ones:
+
+    EmberMapper.Store.create({
+      named: function(name) {
+        return this.findQuery({
+          name: "bob"
+        });
+      }
+    })
+
+Or if you need to do sideloading or any other custom stuff, feel free!
+The xxxRequest methods return a jQuery deferred ajax object, so you can add your own callbacks.
+
+    EmberMapper.Store.create({
+      paginated: function(page) {
+        var records = this.makeRecordArray();
+
+        var ajax = this.findQueryRequest(records, { page: page });
+
+        ajax.done(function(data){
+          records.set("pagination", {
+            perPage: data.per_page
+          });
+        });
+
+        return records;
+      }
+    });
+
+If you want to do something to every request then you can override `ajax` or one of
+the `xxxRequest` methods:
+
+    EmberMapper.Store.create({
+      findQueryRequest: function(records, query) {
+        var ajax = this._super(records, query);
+        ajax.error(function(){
+          // do stuff on error
+        });
+        return ajax;
+      }
+    });
+
+## Validations
 
 TODO ...
