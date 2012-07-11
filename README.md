@@ -26,6 +26,30 @@ It basically just provides serializing to / from JSON with an identity map and l
 * Use a state machine for lifecycles instead of properties
 * Non-embedded associations
 
+
+## Quick Overview
+
+    App.Person = Ember.Object.extend({})
+
+    App.personSchema = EmberMapper.Schema.create({
+      modelClass: App.Person
+      mappings: {
+        firstName: "string"
+        lastName: "string"
+      }
+    })
+
+    App.peopleStore = EmberMapper.Store.create({
+      schema: App.PersonSchema
+    })
+
+    people = App.peopleStore.findQuery({name: "Bob"})
+
+    person = App.peopleStore.find(123)
+    person.set("firstName", "Terry")
+
+    App.peopleStore.updateRecord(person)
+
 ## Models
 
 Your models are 'plain old ember objects', they don't know anything about the
