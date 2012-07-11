@@ -1,0 +1,30 @@
+{
+  "name": "ember-mapper",
+  "summary": "Short package description",
+  "description": "Longer description",
+  "homepage": "https://github.com/rlivsey/ember-mapper",
+  "author": "Richard Livsey",
+  "version": "0.0.1.pre",
+
+  "directories": {
+    "lib": "lib"
+  },
+
+  "dependencies": {
+    "spade": "~> 1.0",
+    "ember-runtime": ">= 0"
+  },
+  "dependencies:development": {
+    "spade-qunit": "~> 1.0.0"
+  },
+  "bpm:build": {
+    "bpm_libs.js": {
+      "files": ["lib"],
+      "modes": "*"
+    },
+    "ember-mapper/bpm_tests.js": {
+      "files": ["tests"],
+      "modes": ["debug"]
+    }
+  }
+}
