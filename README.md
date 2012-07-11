@@ -31,7 +31,7 @@ It basically just provides serializing to / from JSON with an identity map and l
     App.personSchema = EmberMapper.Schema.create({
       modelClass: App.Person
       mappings: {
-        firstName: "string"
+        firstName: "string",
         lastName: "string"
       }
     })
@@ -78,14 +78,14 @@ They are identity map aware so deserializing will update the identity map for th
       mappings: {
         firstName: EmberMapper.Schema.attr("string"),         // use the string type
         lastName: "string",                                   // or to save typing, just the name
-        account: EmberMapper.Schema.one("App.AccountSchema")  // map to another schema for embedded documents
+        account: EmberMapper.Schema.one("App.AccountSchema"), // map to another schema for embedded documents
         tasks: EmberMapper.Schema.many("App.TaskSchema")      // or arrays of embedded documents
       },
 
       // you can include one-way mappings from the JSON
       // which is handy for counts etc... which you don't want to save back
       fromMappings: {
-        numProjects: EmberMapper.Schema.attr("number")  // this won't be serialized to JSON
+        numProjects: EmberMapper.Schema.attr("number"), // this won't be serialized to JSON
         createdAt: "timestamp"
       },
 
@@ -124,8 +124,8 @@ How it does that is up to you.
 Any attribute on `EmberMapper.Schema.attributes` is available to be used for serializing / deserializing.
 
     EmberMapper.Schema.attributes.timestamp = {
-      from: (serialized) -> new Date(serialized * 1000)
-      to: (deserialized) -> deserialized.getTime() / 1000
+      from: function (serialized) { return new Date(serialized * 1000); },
+      to: function (deserialized) { return deserialized.getTime() / 1000; }
     }
 
 ### JSON Key Naming Conventions
@@ -190,10 +190,10 @@ If you want to customize a specific URL, override it and do what you like:
 The `url` can be a computed property, so you make it bind to something else in your app:
 
     EmberMapper.Store.create({
-      currentProjectBinding: "App.current.project"
+      currentProjectBinding: "App.current.project",
 
       url: function(){
-        var projectId = this.getPath("currentProject.id")
+        var projectId = this.getPath("currentProject.id");
         return "/projects/"+projectId;
       }.property("currentProject")
     })
