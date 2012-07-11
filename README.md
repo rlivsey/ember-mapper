@@ -23,6 +23,7 @@ It basically just provides serializing to / from JSON with an identity map and l
 * Validation
 * Lifecycle states
 * Lazy RecordArray like Ember Data
+* Use a state machine for lifecycles instead of properties
 
 ## Models
 
@@ -106,7 +107,7 @@ Any attribute on `EmberMapper.Schema.attributes` is available to be used for ser
       to: (deserialized) -> deserialized.getTime() / 1000
     }
 
-## JSON Key Naming Conventions
+### JSON Key Naming Conventions
 
 The default naming convention is to camelcase your JSON keys
 
