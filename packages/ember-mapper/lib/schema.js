@@ -10,9 +10,9 @@ EmberMapper.Schema = Ember.Object.extend({
   init: function(){
     var map = this.get("identityMap");
     if (map === undefined) {
-      this.set("identityMap", EmberMapper.NullIdentityMap.create());
-    } else if (!map) {
       this.set("identityMap", EmberMapper.IdentityMap.create());
+    } else if (!map) {
+      this.set("identityMap", EmberMapper.NullIdentityMap.create());
     }
   },
 
