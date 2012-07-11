@@ -61,6 +61,10 @@ EmberMapper.Schema = Ember.Object.extend({
           }
   */
   modelClassForJSON: function(json) {
+    return this._getModelClass();
+  },
+
+  _getModelClass: function() {
     var modelClass = this.get("modelClass");
     Ember.assert("No model class specified", !!modelClass);
 
@@ -69,6 +73,10 @@ EmberMapper.Schema = Ember.Object.extend({
       Ember.assert("Model class not found", !!modelClass);
     }
     return modelClass;
+  },
+
+  createRecord: function(attrs) {
+    return this._getModelClass().create(attrs || {});
   },
 
   from: function(json, object) {
