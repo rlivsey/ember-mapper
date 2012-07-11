@@ -65,7 +65,7 @@ test("converts nested model to JSON with default mappings and to mappings", func
 
 });
 
-var json;
+var json, Member, member;
 
 module("EmberMapper.Schema from JSON", {
   setup: function() {
@@ -115,6 +115,8 @@ module("EmberMapper.Schema from JSON", {
     addressSchema = null;
     Address = null;
     Person = null;
+    Member = null;
+    member = null;
     person = null;
     json = null;
   }
@@ -145,6 +147,34 @@ test("updates properties on existing model", function() {
   equal(get(person, "age"), undefined, "shouldn't deserialize 'to' mappings");
   equal(getPath(person, "address.street"), "22 Acacia Avenue");
   equal(getPath(person, "address.country"), "England");
+});
+
+test("custom modelClass", function(){
+
+  Member = Ember.Object.extend();
+
+  personSchema.reopen({
+    modelClassForJSON: function(json) {
+      if (json.type === "member") {
+        return Member;
+      } else {
+        return Person;
+      }
+    }
+  });
+
+  person = personSchema.from({
+    first_name: "Person",
+    type: "normal"
+  });
+
+  member = personSchema.from({
+    first_name: "Person",
+    type: "member"
+  });
+
+  ok(person instanceof Person, "should be a Person");
+  ok(member instanceof Member, "should be a Member");
 });
 
 

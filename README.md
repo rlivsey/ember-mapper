@@ -73,7 +73,24 @@ They are identity map aware so deserializing will update the identity map for th
       }
     })
 
-## Custom Attributes
+### Model Class
+
+Most of the time your schema is for one specific model type.
+
+Sometimes you might want to implement polymorphism / STI where you create different kinds of models
+based on the JSON which is returned.
+
+Simply override `modelClassForJSON` to do your bidding.
+
+    modelClassForJSON: function(json) {
+      if (json.type == "car") {
+        return App.Car;
+      } else {
+        return App.Bus;
+      }
+    }
+
+### Custom Attributes
 
 An attribute is simply something with a `from` and a `to` method.
 

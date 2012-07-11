@@ -49,28 +49,41 @@ EmberMapper.Schema = Ember.Object.extend({
     return json;
   },
 
+  /*
+    Override this and do something else if you want STI or something
+
+          modelClassForJSON: function(json) {
+            if (json.type == "car") {
+              return App.Car;
+            } else {
+              return App.Bus;
+            }
+          }
+  */
+  modelClassForJSON: function(json) {
+    var modelClass = this.get("modelClass");
+    Ember.assert("No model class specified", !!modelClass);
+
+    if (typeof modelClass === 'string') {
+      modelClass = getPath(window, modelClass);
+      Ember.assert("Model class not found", !!modelClass);
+    }
+    return modelClass;
+  },
+
   from: function(json, object) {
     var mappings = this.get("allFromMappings"),
         props = {},
         mapping,
-        key,
-        modelClass;
+        key;
 
     if (object === undefined) {
-      modelClass = this.get("modelClass");
-      Ember.assert("No model class specified", !!modelClass);
-
-      if (typeof modelClass === 'string') {
-        modelClass = getPath(window, modelClass);
-        Ember.assert("Model class not found", !!modelClass);
-      }
-
       if (json.id) {
         object = this.get("identityMap").fetchByID(json.id);
       }
 
       if (!object) {
-        object = modelClass.create();
+        object = this.modelClassForJSON(json).create();
       }
     }
 
