@@ -21,10 +21,8 @@ It basically just provides serializing to / from JSON with an identity map and l
 
 * Tests for stores
 * Validation
-* Lifecycle states
-* Lazy RecordArray like Ember Data
-* Non-embedded associations, I've not needed them yet
-* Use a state machine for lifecycles instead of properties
+* Non-embedded associations (foreign key support, haven't needed it yet myself)
+* Use state machines for lifecycles instead of properties
 
 ## Quick Overview
 
