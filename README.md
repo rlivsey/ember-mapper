@@ -121,9 +121,9 @@ An attribute is simply something with a `from` and a `to` method.
 
 How it does that is up to you.
 
-Any attribute on `EmberMapper.Schema.attributes` is available to be used for serializing / deserializing.
+Any attribute on `EmberMapper.Schema.transforms` is available to be used for serializing / deserializing.
 
-    EmberMapper.Schema.attributes.timestamp = {
+    EmberMapper.Schema.transforms.timestamp = {
       from: function (serialized) { return new Date(serialized * 1000); },
       to: function (deserialized) { return deserialized.getTime() / 1000; }
     }
