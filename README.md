@@ -19,13 +19,12 @@ It basically just provides serializing to / from JSON with an identity map and l
 
 ## TODO
 
-* Ajax, you know, the main point of the plugin...
+* Tests for stores
 * Validation
 * Lifecycle states
 * Lazy RecordArray like Ember Data
+* Non-embedded associations, I've not needed them yet
 * Use a state machine for lifecycles instead of properties
-* Non-embedded associations
-
 
 ## Quick Overview
 
@@ -43,7 +42,7 @@ It basically just provides serializing to / from JSON with an identity map and l
       schema: App.PersonSchema
     })
 
-    people = App.peopleStore.findQuery({name: "Bob"})
+    people = App.peopleStore.findMany({name: "Bob"})
 
     person = App.peopleStore.find(123)
     person.set("firstName", "Terry")
@@ -58,19 +57,16 @@ data store and don't need to inherit / include anything.
     App.Person = Ember.Object.extend()
 
 In order for the identity map to work, it needs to set a property `_im_cid` on
-your model instances, but that's all.
+your model instances.
 
-If you want some lifecycle states on your model, then you can include EmberMapper.LifecycleStates
+When saving / loading etc... it will set some flags on your model:
 
-    App.Person = Ember.Object.extend(EmberMapper.LifecycleStates)
-
-This gives you:
-
-    * isSaving
     * isLoading
+    * isSaving
     * isUpdating
     * isCreating
-    * isDestroyed
+    * isDeleting
+    * isDeleted
 
 ## Schema
 
@@ -82,20 +78,22 @@ They are identity map aware so deserializing will update the identity map for th
       modelClass: "App.Person",
 
       mappings: {
-        firstName: EmberMapper.Schema.attr("string"),
-        lastName: "string", // or just the attr name
-        createdAt: "timestamp",
-        account: App.AccountSchema // map to another schema for embedded documents
+        firstName: EmberMapper.Schema.attr("string"),         // use the string type
+        lastName: "string",                                   // or to save typing, just the name
+        account: EmberMapper.Schema.one("App.AccountSchema")  // map to another schema for embedded documents
+        tasks: EmberMapper.Schema.many("App.TaskSchema")      // or arrays of embedded documents
       },
 
       // you can include one-way mappings from the JSON
+      // which is handy for counts etc... which you don't want to save back
       fromMappings: {
-        numProjects: EmberMapper.Schema.attr("number")
+        numProjects: EmberMapper.Schema.attr("number")  // this won't be serialized to JSON
+        createdAt: "timestamp"
       },
 
-      // and to JSON
+      // and to JSON in occasions where you want to send something extra
       toMappings: {
-        sendInvite: EmberMapper.Schema.attr("boolean")
+        sendInvite: EmberMapper.Schema.attr("boolean") // this won't get deserialized from JSON
       }
     })
 
@@ -116,7 +114,7 @@ Simply override `modelClassForJSON` to do your bidding.
       }
     }
 
-### Custom Attributes
+### Custom Attribute Serializing
 
 An attribute is simply something with a `from` and a `to` method.
 
@@ -148,10 +146,9 @@ If you want to change it for all Schemas, reopen `EmberMapper.Schema`
 
     EmberMapper.Schema.reopen({
       propertyNameToKey: function(key) {
-        // ...
+        return key.toUpperCase();
       }
     })
-
 
 ## Stores
 
@@ -169,13 +166,45 @@ This returns a Person right away with its ID set to 123, it will have `isLoading
 
 This returns a RecordArray with a content of `[]`, again `isLoading` will be true until data arrives.
 
-    peopleStore.findQuery({
+    peopleStore.findMany({
       named: "bob"
     })
 
-You're encouraged to write your own custom finders. Instead of your code being littered with:
 
-    peopleStore.findQuery({
+### URLs
+
+You should set a base URL for the store:
+
+    EmberMapper.Store.create({
+      url: "/api/v1/people"
+    })
+
+This is then built on for all requests, for example `updateRecord` will use the url with the record ID appended.
+
+If you want to customize a specific URL, override it and do what you like:
+
+    EmberMapper.Store.create({
+      deleteRecordUrl: function(record) {
+        return this.get("url") + "/deletification/" + record.get("id");
+      }
+    })
+
+The `url` can be a computed property, so you make it bind to something else in your app:
+
+    EmberMapper.Store.create({
+      currentProjectBinding: "App.current.project"
+
+      url: function(){
+        var projectId = this.getPath("currentProject.id")
+        return "/projects/"+projectId;
+      }.property("currentProject")
+    })
+
+### Custom Requests
+
+You're encouraged to write your own custom requests. Instead of your code being littered with:
+
+    peopleStore.findMany({
       project_id: App.getPath("current.project.id")
     })
 
@@ -189,7 +218,7 @@ Simply add your own finder which calls the built in ones:
 
     EmberMapper.Store.create({
       named: function(name) {
-        return this.findQuery({
+        return this.findMany({
           name: "bob"
         });
       }
@@ -198,12 +227,18 @@ Simply add your own finder which calls the built in ones:
 Or if you need to do sideloading or any other custom stuff, feel free!
 The xxxRequest methods return a jQuery deferred ajax object, so you can add your own callbacks.
 
+Just look at findMany / updateRecord / etc... to write your own:
+
     EmberMapper.Store.create({
       paginated: function(page) {
-        var records = this.makeRecordArray();
+        var records = EmberMapper.RecordArray.create();
 
-        var ajax = this.findQueryRequest(records, { page: page });
+        // same as usual findMany, but with your own parameters
+        var ajax = this.findManyRequest(this.findManyUrl(), records, {
+          data: { page: page }
+        });
 
+        // add your own callback and do more stuff when the request completes
         ajax.done(function(data){
           records.set("pagination", {
             perPage: data.per_page
@@ -218,15 +253,11 @@ If you want to do something to every request then you can override `ajax` or one
 the `xxxRequest` methods:
 
     EmberMapper.Store.create({
-      findQueryRequest: function(records, query) {
-        var ajax = this._super(records, query);
+      findManyRequest: function(url, records, hash) {
+        var ajax = this._super(url, records, hash);
         ajax.error(function(){
           // do stuff on error
         });
         return ajax;
       }
     });
-
-## Validations
-
-TODO ...

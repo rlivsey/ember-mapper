@@ -149,7 +149,7 @@ EmberMapper.Schema.many = function(schema) {
     },
 
     to: function(deserialized) {
-      if (!serialized) {
+      if (!deserialized) {
         return;
       }
 
@@ -159,11 +159,11 @@ EmberMapper.Schema.many = function(schema) {
 
       var items = [];
       for (var i=0, l=get(deserialized, 'length'); i<l; i++) {
-        records.push(schema.to(deserialized[i]));
+        items.push(schema.to(deserialized[i]));
       }
       return items;
     }
-  }
+  };
 };
 
 EmberMapper.Schema.one = function(schema) {
@@ -171,17 +171,17 @@ EmberMapper.Schema.one = function(schema) {
     from: function (serialized) {
       if (typeof schema === "string") {
         schema = getPath(window, schema);
-      };
+      }
       schema.from(serialized);
     },
     to: function (deserialized) {
       if (typeof schema === "string") {
         schema = getPath(window, schema);
-      };
+      }
       schema.to(deserialized);
     }
-  }
-}
+  };
+};
 
 // stolen from Ember Data
 
