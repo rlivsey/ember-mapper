@@ -122,6 +122,59 @@ EmberMapper.Schema.attr = function(type) {
   return transform;
 };
 
+EmberMapper.Schema.many = function(schema) {
+  return {
+    from: function(serialized) {
+      if (!serialized) {
+        return;
+      }
+
+      if (typeof schema === "string") {
+        schema = getPath(window, schema);
+      }
+
+      var records = [];
+      for (var i=0, l=get(serialized, 'length'); i<l; i++) {
+        records.push(schema.from(serialized[i]));
+      }
+      return records;
+    },
+
+    to: function(deserialized) {
+      if (!serialized) {
+        return;
+      }
+
+      if (typeof schema === "string") {
+        schema = getPath(window, schema);
+      }
+
+      var items = [];
+      for (var i=0, l=get(deserialized, 'length'); i<l; i++) {
+        records.push(schema.to(deserialized[i]));
+      }
+      return items;
+    }
+  }
+};
+
+EmberMapper.Schema.one = function(schema) {
+  return {
+    from: function (serialized) {
+      if (typeof schema === "string") {
+        schema = getPath(window, schema);
+      };
+      schema.from(serialized);
+    },
+    to: function (deserialized) {
+      if (typeof schema === "string") {
+        schema = getPath(window, schema);
+      };
+      schema.to(deserialized);
+    }
+  }
+}
+
 // stolen from Ember Data
 
 EmberMapper.Schema.transforms = {
