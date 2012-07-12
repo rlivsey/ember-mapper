@@ -180,13 +180,13 @@ EmberMapper.Schema.one = function(schema) {
       if (typeof schema === "string") {
         schema = getPath(window, schema);
       }
-      schema.from(serialized);
+      return schema.from(serialized);
     },
     to: function (deserialized) {
       if (typeof schema === "string") {
         schema = getPath(window, schema);
       }
-      schema.to(deserialized);
+      return schema.to(deserialized);
     }
   };
 };
