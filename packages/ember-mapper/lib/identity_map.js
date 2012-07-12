@@ -41,8 +41,8 @@ EmberMapper.IdentityMap = Ember.Object.extend({
 });
 
 EmberMapper.NullIdentityMap = Ember.Object.extend({
-  store: Ember.K,
-  fetchByClientID: Ember.K,
-  fetchByID: Ember.K,
-  clear: Ember.K
+  store: function(){},
+  fetchByClientID: function(){},
+  fetchByID: function(){},
+  clear: function(){}
 });
