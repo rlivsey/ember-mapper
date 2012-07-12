@@ -65,6 +65,11 @@ test("converts nested model to JSON with default mappings and to mappings", func
 
 });
 
+test("handles non-objects without dying", function(){
+  equal(personSchema.to(null), null);
+  equal(personSchema.to(undefined), undefined);
+});
+
 var json, Member, member;
 
 module("EmberMapper.Schema from JSON", {

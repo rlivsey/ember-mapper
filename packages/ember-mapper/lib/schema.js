@@ -29,6 +29,10 @@ EmberMapper.Schema = Ember.Object.extend({
   }).property().cacheable(),
 
   to: function(object) {
+    if (!object) {
+      return object;
+    }
+
     var mappings = this.get("allToMappings"),
         json = {},
         mapping, key;
@@ -80,6 +84,10 @@ EmberMapper.Schema = Ember.Object.extend({
   },
 
   from: function(json, object) {
+    if (!json) {
+      return json;
+    }
+
     var mappings = this.get("allFromMappings"),
         props = {},
         mapping,
