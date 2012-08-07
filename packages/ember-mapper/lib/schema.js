@@ -1,4 +1,4 @@
-var get = Ember.get, set = Ember.set, getPath = Ember.getPath;
+var get = Ember.get, set = Ember.set;
 
 EmberMapper.Schema = Ember.Object.extend({
 
@@ -73,7 +73,7 @@ EmberMapper.Schema = Ember.Object.extend({
     Ember.assert("No model class specified", !!modelClass);
 
     if (typeof modelClass === 'string') {
-      modelClass = getPath(window, modelClass);
+      modelClass = get(window, modelClass);
       Ember.assert("Model class not found", !!modelClass);
     }
     return modelClass;
@@ -146,7 +146,7 @@ EmberMapper.Schema.many = function(schema) {
       }
 
       if (typeof schema === "string") {
-        schema = getPath(window, schema);
+        schema = get(window, schema);
       }
 
       var records = [];
@@ -162,7 +162,7 @@ EmberMapper.Schema.many = function(schema) {
       }
 
       if (typeof schema === "string") {
-        schema = getPath(window, schema);
+        schema = get(window, schema);
       }
 
       var items = [];
@@ -178,13 +178,13 @@ EmberMapper.Schema.one = function(schema) {
   return {
     from: function (serialized) {
       if (typeof schema === "string") {
-        schema = getPath(window, schema);
+        schema = get(window, schema);
       }
       return schema.from(serialized);
     },
     to: function (deserialized) {
       if (typeof schema === "string") {
-        schema = getPath(window, schema);
+        schema = get(window, schema);
       }
       return schema.to(deserialized);
     }

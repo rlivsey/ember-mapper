@@ -1,6 +1,6 @@
 /*global jQuery*/
 
-var get = Ember.get, set = Ember.set, getPath = Ember.getPath;
+var get = Ember.get, set = Ember.set;
 
 EmberMapper.Store = Ember.Object.extend({
 

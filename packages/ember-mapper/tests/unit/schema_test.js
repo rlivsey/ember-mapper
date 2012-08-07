@@ -1,4 +1,4 @@
-var get = Ember.get, set = Ember.set, getPath = Ember.getPath;
+var get = Ember.get, set = Ember.set;
 
 var personSchema, person, Person, Address, addressSchema;
 
@@ -136,8 +136,8 @@ test("converts nested JSON into models", function() {
   equal(get(person, "lastName"),  "Hoskins");
   equal(get(person, "foo"),  "bar", "should use 'from' mappings");
   equal(get(person, "age"), undefined, "shouldn't deserialize 'to' mappings");
-  equal(getPath(person, "address.street"), "22 Acacia Avenue");
-  equal(getPath(person, "address.country"), "England");
+  equal(get(person, "address.street"), "22 Acacia Avenue");
+  equal(get(person, "address.country"), "England");
 });
 
 test("updates properties on existing model", function() {
@@ -150,8 +150,8 @@ test("updates properties on existing model", function() {
   equal(get(person, "lastName"),  "Hoskins");
   equal(get(person, "foo"),  "bar", "should use 'from' mappings");
   equal(get(person, "age"), undefined, "shouldn't deserialize 'to' mappings");
-  equal(getPath(person, "address.street"), "22 Acacia Avenue");
-  equal(getPath(person, "address.country"), "England");
+  equal(get(person, "address.street"), "22 Acacia Avenue");
+  equal(get(person, "address.country"), "England");
 });
 
 test("custom modelClass", function(){
