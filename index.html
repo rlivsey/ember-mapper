@@ -1,0 +1,323 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Ember-mapper by rlivsey</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Ember-mapper</h1>
+        <p class="header">Like Ember Data, but not as good</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/rlivsey/ember-mapper/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/rlivsey/ember-mapper/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/rlivsey/ember-mapper">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/rlivsey">rlivsey</a></p>
+
+
+      </header>
+      <section>
+        <h1>EmberMapper</h1>
+
+<p>A complex solution to a simple problem.</p>
+
+<h2>Why not Ember Data</h2>
+
+<p>Ember Data is more than likely fine for your purposes, you probably don't want
+to use this.</p>
+
+<p>At the time of writing Ember Data didn't match my needs. It probably will do in future, but I'm impatient.</p>
+
+<p>I wanted a bit more control over the URLs used and how the data is serialized/deserialized,
+I needed composed objects, setting properties without marking the object as dirty etc...</p>
+
+<p>This doesn't handle dirty tracking and many of the other nice things you get with Ember Data,
+it assumes you know what you want to save and when.</p>
+
+<p>It basically just provides serializing to / from JSON with an identity map and leaves most of the rest to you.</p>
+
+<h2>TODO</h2>
+
+<ul>
+<li>Tests for stores</li>
+<li>Validation</li>
+<li>Non-embedded associations (foreign key support, haven't needed it yet myself)</li>
+<li>Use state machines for lifecycles instead of properties</li>
+</ul><h2>Quick Overview</h2>
+
+<pre><code>App.Person = Ember.Object.extend({})
+
+App.personSchema = EmberMapper.Schema.create({
+  modelClass: App.Person
+  mappings: {
+    firstName: "string",
+    lastName: "string"
+  }
+})
+
+App.peopleStore = EmberMapper.Store.create({
+  schema: App.PersonSchema
+})
+
+people = App.peopleStore.findMany({name: "Bob"})
+
+person = App.peopleStore.find(123)
+person.set("firstName", "Terry")
+
+App.peopleStore.updateRecord(person)
+</code></pre>
+
+<h2>Models</h2>
+
+<p>Your models are 'plain old ember objects', they don't know anything about the
+data store and don't need to inherit / include anything.</p>
+
+<pre><code>App.Person = Ember.Object.extend()
+</code></pre>
+
+<p>In order for the identity map to work, it needs to set a property <code>_im_cid</code> on
+your model instances.</p>
+
+<p>When saving / loading etc... it will set some flags on your model:</p>
+
+<pre><code>* isLoading
+* isSaving
+* isUpdating
+* isCreating
+* isDeleting
+* isDeleted
+</code></pre>
+
+<h2>Schema</h2>
+
+<p>A schema uses serializers to convert a model to / from JSON.</p>
+
+<p>They are identity map aware so deserializing will update the identity map for the schema.</p>
+
+<pre><code>App.PersonSchema = EmberMapper.Schema.extend({
+  modelClass: "App.Person",
+
+  mappings: {
+    firstName: EmberMapper.Schema.attr("string"),         // use the string type
+    lastName: "string",                                   // or to save typing, just the name
+    account: EmberMapper.Schema.one("App.AccountSchema"), // map to another schema for embedded documents
+    tasks: EmberMapper.Schema.many("App.TaskSchema")      // or arrays of embedded documents
+  },
+
+  // you can include one-way mappings from the JSON
+  // which is handy for counts etc... which you don't want to save back
+  fromMappings: {
+    numProjects: EmberMapper.Schema.attr("number"), // this won't be serialized to JSON
+    createdAt: "timestamp"
+  },
+
+  // and to JSON in occasions where you want to send something extra
+  toMappings: {
+    sendInvite: EmberMapper.Schema.attr("boolean") // this won't get deserialized from JSON
+  }
+})
+</code></pre>
+
+<h3>Model Class</h3>
+
+<p>Most of the time your schema is for one specific model type.</p>
+
+<p>Sometimes you might want to implement polymorphism / STI where you create different kinds of models
+based on the JSON which is returned.</p>
+
+<p>Simply override <code>modelClassForJSON</code> to do your bidding.</p>
+
+<pre><code>modelClassForJSON: function(json) {
+  if (json.type == "car") {
+    return App.Car;
+  } else {
+    return App.Bus;
+  }
+}
+</code></pre>
+
+<h3>Custom Attribute Serializing</h3>
+
+<p>An attribute is simply something with a <code>from</code> and a <code>to</code> method.</p>
+
+<ul>
+<li>
+<code>from</code> takes JSON and turns it into an object.</li>
+<li>
+<code>to</code> takes an object and turns it into JSON.</li>
+</ul><p>How it does that is up to you.</p>
+
+<p>Any attribute on <code>EmberMapper.Schema.transforms</code> is available to be used for serializing / deserializing.</p>
+
+<pre><code>EmberMapper.Schema.transforms.timestamp = {
+  from: function (serialized) { return new Date(serialized * 1000); },
+  to: function (deserialized) { return deserialized.getTime() / 1000; }
+}
+</code></pre>
+
+<h3>JSON Key Naming Conventions</h3>
+
+<p>The default naming convention is to camelcase your JSON keys</p>
+
+<pre><code>first_name -&gt; firstName
+</code></pre>
+
+<p>You can override this on a Schema by overriding <code>propertyToKeyName</code></p>
+
+<pre><code>propertyNameToKey: function(key) {
+  return Ember.String.underscore(key);
+}
+</code></pre>
+
+<p>If you want to change it for all Schemas, reopen <code>EmberMapper.Schema</code></p>
+
+<pre><code>EmberMapper.Schema.reopen({
+  propertyNameToKey: function(key) {
+    return key.toUpperCase();
+  }
+})
+</code></pre>
+
+<h2>Stores</h2>
+
+<p>A Store takes a Schema and loads/saves it to the intertubes.</p>
+
+<pre><code>peopleStore = EmberMapper.Store.create({
+  schema: peopleSchema
+})
+</code></pre>
+
+<p>Requests return immediately and are loaded when data arrives.</p>
+
+<p>This returns a Person right away with its ID set to 123, it will have <code>isLoading</code> set to true.</p>
+
+<pre><code>peopleStore.find(123)
+</code></pre>
+
+<p>This returns a RecordArray with a content of <code>[]</code>, again <code>isLoading</code> will be true until data arrives.</p>
+
+<pre><code>peopleStore.findMany({
+  named: "bob"
+})
+</code></pre>
+
+<h3>URLs</h3>
+
+<p>You should set a base URL for the store:</p>
+
+<pre><code>EmberMapper.Store.create({
+  url: "/api/v1/people"
+})
+</code></pre>
+
+<p>This is then built on for all requests, for example <code>updateRecord</code> will use the url with the record ID appended.</p>
+
+<p>If you want to customize a specific URL, override it and do what you like:</p>
+
+<pre><code>EmberMapper.Store.create({
+  deleteRecordUrl: function(record) {
+    return this.get("url") + "/deletification/" + record.get("id");
+  }
+})
+</code></pre>
+
+<p>The <code>url</code> can be a computed property, so you make it bind to something else in your app:</p>
+
+<pre><code>EmberMapper.Store.create({
+  currentProjectBinding: "App.current.project",
+
+  url: function(){
+    var projectId = this.getPath("currentProject.id");
+    return "/projects/"+projectId;
+  }.property("currentProject")
+})
+</code></pre>
+
+<h3>Custom Requests</h3>
+
+<p>You're encouraged to write your own custom requests. Instead of your code being littered with:</p>
+
+<pre><code>peopleStore.findMany({
+  project_id: App.getPath("current.project.id")
+})
+</code></pre>
+
+<p>You can have:</p>
+
+<pre><code>peopleStore.inProject(App.getPath("current.project"))
+peopleStore.named("bob")
+etc...
+</code></pre>
+
+<p>Simply add your own finder which calls the built in ones:</p>
+
+<pre><code>EmberMapper.Store.create({
+  named: function(name) {
+    return this.findMany({
+      name: "bob"
+    });
+  }
+})
+</code></pre>
+
+<p>Or if you need to do sideloading or any other custom stuff, feel free!
+The xxxRequest methods return a jQuery deferred ajax object, so you can add your own callbacks.</p>
+
+<p>Just look at findMany / updateRecord / etc... to write your own:</p>
+
+<pre><code>EmberMapper.Store.create({
+  paginated: function(page) {
+    var records = EmberMapper.RecordArray.create();
+
+    // same as usual findMany, but with your own parameters
+    var ajax = this.findManyRequest(this.findManyUrl(), records, {
+      data: { page: page }
+    });
+
+    // add your own callback and do more stuff when the request completes
+    ajax.done(function(data){
+      records.set("pagination", {
+        perPage: data.per_page
+      });
+    });
+
+    return records;
+  }
+});
+</code></pre>
+
+<p>If you want to do something to every request then you can override <code>ajax</code> or one of
+the <code>xxxRequest</code> methods:</p>
+
+<pre><code>EmberMapper.Store.create({
+  findManyRequest: function(url, records, hash) {
+    var ajax = this._super(url, records, hash);
+    ajax.error(function(){
+      // do stuff on error
+    });
+    return ajax;
+  }
+});
+</code></pre>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
