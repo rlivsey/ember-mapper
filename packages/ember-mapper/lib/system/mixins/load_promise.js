@@ -6,8 +6,13 @@ var DeferredMixin = Ember.DeferredMixin,  // ember-runtime/mixins/deferred
 var LoadPromise = Ember.Mixin.create(Evented, DeferredMixin, {
   init: function() {
     this._super.apply(this, arguments);
+
     this.one('didLoad', function() {
       run(this, 'resolve', this);
+    });
+
+    this.one('didError', function() {
+      run(this, 'reject', this);
     });
 
     if (get(this, 'isLoaded')) {
