@@ -24,7 +24,7 @@ EM.Adapter = Ember.Object.extend({
     itemData     = serializer.extractItem(data, get(mapper, 'model'));
     deserialized = mapper.deserialize(itemData, store);
 
-    this.extractMeta(data, serializer);
+    this.extractMeta(store, mapper, data, record);
     this.extractSideloads(data, mapper);
 
     store.didFindOne(deserialized, mapper, record);
@@ -37,7 +37,7 @@ EM.Adapter = Ember.Object.extend({
     itemsData    = serializer.extractItems(data, get(mapper, 'model'));
     deserialized = itemsData.map(function(item) { return mapper.deserialize(item, store); });
 
-    this.extractMeta(data, serializer);
+    this.extractMeta(store, mapper, data, records);
     this.extractSideloads(data, mapper);
 
     store.didFindMany(deserialized, mapper, records);
@@ -51,7 +51,7 @@ EM.Adapter = Ember.Object.extend({
 
     mapper.deserialize(itemData, store, record);
 
-    this.extractMeta(data, serializer);
+    this.extractMeta(store, mapper, data, record);
     this.extractSideloads(data, mapper);
 
     store.didCreateRecord(mapper, record);
@@ -65,7 +65,7 @@ EM.Adapter = Ember.Object.extend({
 
     mapper.deserialize(itemData, store, record);
 
-    this.extractMeta(data, serializer);
+    this.extractMeta(store, mapper, data, record);
     this.extractSideloads(data, mapper);
 
     store.didUpdateRecord(mapper, record);
@@ -74,17 +74,22 @@ EM.Adapter = Ember.Object.extend({
   didDeleteRecord: function(store, mapper, data, record) {
     var serializer = get(mapper, "serializer");
 
-    this.extractMeta(data, serializer);
+    this.extractMeta(store, mapper, data, record);
     this.extractSideloads(data, mapper);
 
     store.didDeleteRecord(mapper, record);
   },
 
+  didError: function(store, mapper, record) {
+    store.recordWasError(mapper, record);
+  },
+
   // runs the meta data through the serializer
   // TODO - could have a mapper for meta data?
-  extractMeta: function(data, serializer) {
+  extractMeta: function(store, mapper, data, record) {
     if (!data) { return; }
 
+    var serializer = get(mapper, "serializer");
     var metaData = serializer.extractMeta(data);
 
     if (!metaData) { return; }
@@ -96,6 +101,7 @@ EM.Adapter = Ember.Object.extend({
     }
 
     Ember.Object.create(attrs);
+    store.didReceiveMeta(mapper, record, meta);
   },
 
   extractSideloads: function(data, mapper) {

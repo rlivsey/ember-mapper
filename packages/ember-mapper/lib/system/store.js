@@ -206,16 +206,19 @@ EM.Store = Ember.Object.extend({
   didDeleteRecord: function(mapper, record) {
     record.trigger("didDelete");
     this._identityMap.remove(record);
-  }
+  },
 
-  // didReceiveMeta: function(meta, mapper, record) {
-  //   var container = get(this, 'container');
-  //   var schema = container.lookup('schema:meta');
-  //   if (schema) {
-  //     meta = schema.deserialize(meta);
-  //   }
-  //   record.set("meta", meta);
-  // }
+  didReceiveMeta: function(mapper, record, meta) {
+    record.set("meta", meta);
+  },
+
+  recordWasInvalid: function(mapper, record, errors) {
+    record.set("errors", Ember.Object.create(errors));
+  },
+
+  recordWasError: function(mapper, record) {
+    record.trigger("didError");
+  }
 
 });
 
