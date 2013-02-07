@@ -1,261 +1,108 @@
 # EmberMapper
 
-A complex solution to a simple problem.
+WORK IN PROGRESS...
 
-## Why not Ember Data
+It's what you'd get if you took Ember-Data and shook it about until bits fell off.
 
-Ember Data is more than likely fine for your purposes, you probably don't want
-to use this.
+Inspired by Ember-Data in a nubmer of ways, in fact we steal quite a bit of code... but
+without dirty tracking, transactions or advanced association tracking.
 
-At the time of writing Ember Data didn't match my needs. It probably will do in future, but I'm impatient.
+## Usage
 
-I wanted a bit more control over the URLs used and how the data is serialized/deserialized,
-I needed composed objects, setting properties without marking the object as dirty etc...
+    var attr = EM.Model.attr;
 
-This doesn't handle dirty tracking and many of the other nice things you get with Ember Data,
-it assumes you know what you want to save and when.
-
-It basically just provides serializing to / from JSON with an identity map and leaves most of the rest to you.
-
-## TODO
-
-* Tests for stores
-* Validation
-* Non-embedded associations (foreign key support, haven't needed it yet myself)
-* Use state machines for lifecycles instead of properties
-
-## Quick Overview
-
-    App.Person = Ember.Object.extend({})
-
-    App.personSchema = EmberMapper.Schema.create({
-      modelClass: App.Person
-      mappings: {
-        firstName: "string",
-        lastName: "string"
-      }
+    App.Person = EM.Model.extend({
+      firstName: attr("string"),
+      lastName: attr("string"),
+      joinedAt: attr("date"),
+      isAdmin: attr("boolean")
     })
 
-    App.peopleStore = EmberMapper.Store.create({
-      schema: App.PersonSchema
+    // in a router action // controller
+
+    person = this.storeFor("person").find(123)
+
+    person.set("firstName", "updated")
+
+    this.storeFor("person").save(person)
+
+### Models
+
+    // saves us some typing
+    var attr    = EM.Model.attr,
+        hasOne  = EM.Model.hasOne,
+        hasMany = EM.Model.hasMany;
+
+    App.Person = EM.Model.extend({
+      firstName: attr("string"),
+      lastName:  attr("string"),
+      address:   hasOne("App.Address"),
+      articles:  hasMany("App.Article")
     })
 
-    people = App.peopleStore.findMany({name: "Bob"})
+### Mappers
 
-    person = App.peopleStore.find(123)
-    person.set("firstName", "Terry")
+By default serializing a model takes all its attributes and assumes all associations
+are embedded. To change this, define a mapper for your model.
 
-    App.peopleStore.updateRecord(person)
+    // again, save some typing - note this is EM.Mapper not EM.Model
+    var attr    = EM.Mapper.attr,
+        hasOne  = EM.Mapper.hasOne,
+        hasMany = EM.Mapper.hasMany;
 
-## Models
-
-Your models are 'plain old ember objects', they don't know anything about the
-data store and don't need to inherit / include anything.
-
-    App.Person = Ember.Object.extend()
-
-In order for the identity map to work, it needs to set a property `_im_cid` on
-your model instances.
-
-When saving / loading etc... it will set some flags on your model:
-
-    * isLoading
-    * isSaving
-    * isUpdating
-    * isCreating
-    * isDeleting
-    * isDeleted
-
-## Schema
-
-A schema uses serializers to convert a model to / from JSON.
-
-They are identity map aware so deserializing will update the identity map for the schema.
-
-    App.PersonSchema = EmberMapper.Schema.extend({
-      modelClass: "App.Person",
-
-      mappings: {
-        firstName: EmberMapper.Schema.attr("string"),         // use the string type
-        lastName: "string",                                   // or to save typing, just the name
-        account: EmberMapper.Schema.one("App.AccountSchema"), // map to another schema for embedded documents
-        tasks: EmberMapper.Schema.many("App.TaskSchema")      // or arrays of embedded documents
-      },
-
-      // you can include one-way mappings from the JSON
-      // which is handy for counts etc... which you don't want to save back
-      fromMappings: {
-        numProjects: EmberMapper.Schema.attr("number"), // this won't be serialized to JSON
-        createdAt: "timestamp"
-      },
-
-      // and to JSON in occasions where you want to send something extra
-      toMappings: {
-        sendInvite: EmberMapper.Schema.attr("boolean") // this won't get deserialized from JSON
-      }
+    App.PersonMapper = EM.Mapper.extend({
+      firstName: EM.Mapper.attr({key: "firstname"}),
+      address:   EM.Mapper.hasOne({embedded: false, key: "addressId"}),
+      articles:  EM.Mapper.hasMany({embedded: false, key: "publishedArticles", sideload: true})
     })
 
-### Model Class
+The mapper's job is to take a model and turn it into a hash which can be sent to the
+adapter to be persisted - and vice-versa.
 
-Most of the time your schema is for one specific model type.
+### Serializer
 
-Sometimes you might want to implement polymorphism / STI where you create different kinds of models
-based on the JSON which is returned.
+Once the mapper has had its way and we have a data hash, the adapter can then serialize
+that into a form the data store is happy with.
 
-Simply override `modelClassForJSON` to do your bidding.
+For example, the mapper might turn a Person object into:
 
-    modelClassForJSON: function(json) {
-      if (json.type == "car") {
-        return App.Car;
-      } else {
-        return App.Bus;
+    {
+      id: 1234,
+      firstName: "Bob",
+      lastName: "Johnson"
+    }
+
+The default serializer (JSONSerializer) will then turn this into:
+
+    {
+      person: {
+        id: 1234,
+        first_name: "Bob",
+        last_name: "Johnson"
       }
     }
 
-### Custom Attribute Serializing
+### Adapters
 
-An attribute is simply something with a `from` and a `to` method.
+The adapter's job is to send and receive data over the wire. The default adapter is the
+RESTAdapter and handles submitting Ajax requests with jQuery.Ajax.
 
-* `from` takes JSON and turns it into an object.
-* `to` takes an object and turns it into JSON.
+### Identity Map
 
-How it does that is up to you.
+Each store has an identity map which should guarantee that fetching two records with the
+same ID will result in the same object.
 
-Any attribute on `EmberMapper.Schema.transforms` is available to be used for serializing / deserializing.
+    person1 = store.find(123)
+    person2 = store.find(123)
+    people = store.find()
 
-    EmberMapper.Schema.transforms.timestamp = {
-      from: function (serialized) { return new Date(serialized * 1000); },
-      to: function (deserialized) { return deserialized.getTime() / 1000; }
-    }
+    person2.get("firstName") -> "Bob"
+    person1.set("firstName", "changed")
+    person2.get("firstName") -> "changed"
 
-### JSON Key Naming Conventions
+    // assuming the first one was the same person
+    people.get("firstObject.firstName") -> "changed"
 
-The default naming convention is to camelcase your JSON keys
+### Stores
 
-    first_name -> firstName
-
-You can override this on a Schema by overriding `propertyToKeyName`
-
-    propertyNameToKey: function(key) {
-      return Ember.String.underscore(key);
-    }
-
-If you want to change it for all Schemas, reopen `EmberMapper.Schema`
-
-    EmberMapper.Schema.reopen({
-      propertyNameToKey: function(key) {
-        return key.toUpperCase();
-      }
-    })
-
-## Stores
-
-A Store takes a Schema and loads/saves it to the intertubes.
-
-    peopleStore = EmberMapper.Store.create({
-      schema: peopleSchema
-    })
-
-Requests return immediately and are loaded when data arrives.
-
-This returns a Person right away with its ID set to 123, it will have `isLoading` set to true.
-
-    peopleStore.find(123)
-
-This returns a RecordArray with a content of `[]`, again `isLoading` will be true until data arrives.
-
-    peopleStore.findMany({
-      named: "bob"
-    })
-
-
-### URLs
-
-You should set a base URL for the store:
-
-    EmberMapper.Store.create({
-      url: "/api/v1/people"
-    })
-
-This is then built on for all requests, for example `updateRecord` will use the url with the record ID appended.
-
-If you want to customize a specific URL, override it and do what you like:
-
-    EmberMapper.Store.create({
-      deleteRecordUrl: function(record) {
-        return this.get("url") + "/deletification/" + record.get("id");
-      }
-    })
-
-The `url` can be a computed property, so you make it bind to something else in your app:
-
-    EmberMapper.Store.create({
-      currentProjectBinding: "App.current.project",
-
-      url: function(){
-        var projectId = this.getPath("currentProject.id");
-        return "/projects/"+projectId;
-      }.property("currentProject")
-    })
-
-### Custom Requests
-
-You're encouraged to write your own custom requests. Instead of your code being littered with:
-
-    peopleStore.findMany({
-      project_id: App.getPath("current.project.id")
-    })
-
-You can have:
-
-    peopleStore.inProject(App.getPath("current.project"))
-    peopleStore.named("bob")
-    etc...
-
-Simply add your own finder which calls the built in ones:
-
-    EmberMapper.Store.create({
-      named: function(name) {
-        return this.findMany({
-          name: "bob"
-        });
-      }
-    })
-
-Or if you need to do sideloading or any other custom stuff, feel free!
-The xxxRequest methods return a jQuery deferred ajax object, so you can add your own callbacks.
-
-Just look at findMany / updateRecord / etc... to write your own:
-
-    EmberMapper.Store.create({
-      paginated: function(page) {
-        var records = EmberMapper.RecordArray.create();
-
-        // same as usual findMany, but with your own parameters
-        var ajax = this.findManyRequest(this.findManyUrl(), records, {
-          data: { page: page }
-        });
-
-        // add your own callback and do more stuff when the request completes
-        ajax.done(function(data){
-          records.set("pagination", {
-            perPage: data.per_page
-          });
-        });
-
-        return records;
-      }
-    });
-
-If you want to do something to every request then you can override `ajax` or one of
-the `xxxRequest` methods:
-
-    EmberMapper.Store.create({
-      findManyRequest: function(url, records, hash) {
-        var ajax = this._super(url, records, hash);
-        ajax.error(function(){
-          // do stuff on error
-        });
-        return ajax;
-      }
-    });
+The store wires all this stuff together

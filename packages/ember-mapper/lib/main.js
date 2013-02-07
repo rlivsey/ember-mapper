@@ -1,5 +1,6 @@
 require("ember-mapper/core");
-require("ember-mapper/identity_map");
-require("ember-mapper/schema");
-require("ember-mapper/record_array");
-require("ember-mapper/store");
+require("ember-mapper/system/identity_map");
+require("ember-mapper/system/model");
+require("ember-mapper/system/store");
+require("ember-mapper/system/mapper");
+require("ember-mapper/system/ext");

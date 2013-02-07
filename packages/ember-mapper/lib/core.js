@@ -1,1 +1,1 @@
-window.EmberMapper = Ember.Namespace.create({});
+window.EM = Ember.Namespace.create({});

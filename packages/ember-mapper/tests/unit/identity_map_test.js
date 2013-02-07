@@ -2,9 +2,9 @@ var get = Ember.get, set = Ember.set;
 
 var identity, object, object2, client_id, client_id2;
 
-module("EmberMapper.IdentityMap", {
+module("EM.IdentityMap", {
   setup: function() {
-    identity = EmberMapper.IdentityMap.create();
+    identity = EM.IdentityMap.create();
   },
 
   teardown: function() {
@@ -60,4 +60,19 @@ test("clears out objects", function() {
   ok(!identity.fetchByID(2345));
   ok(!identity.fetchByClientID(client_id));
   ok(!identity.fetchByClientID(client_id2));
+});
+
+test("deletes objects", function() {
+  object  = Ember.Object.create({id: 1234});
+  object2 = Ember.Object.create({id: 2345});
+
+  client_id  = identity.store(object);
+  client_id2 = identity.store(object2);
+
+  identity.remove(object);
+
+  ok(!identity.fetchByID(1234), "has been removed");
+  ok(identity.fetchByID(2345), "has not been removed");
+  ok(!identity.fetchByClientID(client_id), "has been removed");
+  ok(identity.fetchByClientID(client_id2), "has not been removed");
 });

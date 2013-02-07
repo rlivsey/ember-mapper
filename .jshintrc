@@ -2,7 +2,7 @@
     "predef": [
         "console",
         "Ember",
-        "EmberMapper",
+        "EM",
         "Handlebars",
         "Metamorph",
         "ember_assert",

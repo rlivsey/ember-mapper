@@ -1,4 +1,4 @@
-EmberMapper.IdentityMap = Ember.Object.extend({
+EM.IdentityMap = Ember.Object.extend({
   init: function() {
     this.counter = 0;
     this.clear();
@@ -11,7 +11,6 @@ EmberMapper.IdentityMap = Ember.Object.extend({
     if (cid === undefined) {
       cid = ++this.counter;
       object.set("_im_cid", cid);
-      this.cids.push(cid);
     }
 
     if (id !== undefined) {
@@ -22,6 +21,20 @@ EmberMapper.IdentityMap = Ember.Object.extend({
     this.data[cid] = object;
 
     return cid;
+  },
+
+  remove: function(object) {
+    var id  = object.get("id"),
+        cid = object.get("_im_cid");
+
+    if (id !== undefined) {
+      delete this.id_to_cid[id];
+    }
+
+    if (cid !== undefined) {
+      delete this.cid_to_id[cid];
+      delete this.data[cid];
+    }
   },
 
   fetchByClientID: function(id) {
@@ -35,14 +48,15 @@ EmberMapper.IdentityMap = Ember.Object.extend({
   clear: function() {
     this.id_to_cid = {};
     this.cid_to_id = {};
-    this.cids      = [];
     this.data      = {};
   }
 });
 
-EmberMapper.NullIdentityMap = Ember.Object.extend({
-  store: function(){},
-  fetchByClientID: function(){},
-  fetchByID: function(){},
-  clear: function(){}
+var nothing = function(){};
+EM.NullIdentityMap = Ember.Object.extend({
+  store: nothing,
+  fetchByClientID: nothing,
+  fetchByID: nothing,
+  clear: nothing,
+  remove: nothing
 });
