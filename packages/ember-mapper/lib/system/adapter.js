@@ -97,7 +97,7 @@ EM.Adapter = Ember.Object.extend({
     var attrs = {};
     for (var prop in metaData) {
       if (!metaData.hasOwnProperty(prop)) { continue; }
-      attrs[serializer.keyForAttributeName(null, prop)] = metaData[prop];
+      attrs[serializer.attributeNameForMetaKey(prop)] = metaData[prop];
     }
 
     var meta = Ember.Object.create(attrs);

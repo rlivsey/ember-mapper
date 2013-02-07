@@ -2,7 +2,8 @@ require("ember-mapper/system/serializer");
 require("ember-mapper/transforms/json_transforms");
 
 var get        = Ember.get,
-    decamelize = Ember.String.decamelize;
+    decamelize = Ember.String.decamelize,
+    camelize   = Ember.String.camelize;
 
 EM.JSONSerializer = EM.Serializer.extend({
 
@@ -43,6 +44,10 @@ EM.JSONSerializer = EM.Serializer.extend({
 
   keyForAttributeName: function(type, name) {
     return decamelize(name);
+  },
+
+  attributeNameForMetaKey: function(name) {
+    return camelize(name);
   },
 
   keyForHasOne: function(type, name) {

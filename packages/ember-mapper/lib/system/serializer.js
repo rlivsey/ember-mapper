@@ -30,6 +30,10 @@ EM.Serializer = Ember.Object.extend({
     return name;
   },
 
+  attributeNameForMetaKey: function(name) {
+    return name;
+  },
+
   keyForHasOne: function(type, name) {
     return name;
   },
