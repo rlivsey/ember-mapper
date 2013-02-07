@@ -200,9 +200,9 @@ EM.Mapper = Ember.Object.extend({
   },
 
   _deserializeAttributes: function(hash, type, configs, serializer, attributes) {
-    var config, key;
-
     get(type, "attributes").forEach(function(name, meta) {
+      var config, key;
+
       config = configs.get(name);
 
       if (skipDeserialize(config)) { return; }
@@ -219,10 +219,10 @@ EM.Mapper = Ember.Object.extend({
   },
 
   _deserializeAssociations: function(hash, type, configs, serializer, attributes) {
-    var mapper, config, embeds, key, itemStore, associationHash, value;
     var container = get(this, "container");
 
     get(type, "associations").forEach(function(name, meta) {
+      var mapper, config, embeds, key, itemStore, associationHash, value;
 
       config = configs.get(name);
       embeds = !config || config.get("embedded") !== false;
