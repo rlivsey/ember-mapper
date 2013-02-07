@@ -3,6 +3,7 @@ var get = Ember.get;
 EM.ModelLifecycle = Ember.Mixin.create({
 
   isLoading:  false,
+  isSaving:   false,
   isCreating: false,
   isUpdating: false,
   isDeleting: false,
