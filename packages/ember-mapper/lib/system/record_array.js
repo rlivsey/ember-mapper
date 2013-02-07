@@ -1,8 +1,13 @@
+require("ember-mapper/system/mixins/load_promise");
+
 var get = Ember.get,
     set = Ember.set;
 
-EM.RecordArray = Ember.ArrayProxy.extend(Ember.Evented, {
+EM.RecordArray = Ember.ArrayProxy.extend(Ember.Evented, EM.LoadPromise, {
   content: null,
+
+  isLoading: false,
+  isError:   false,
 
   init: function() {
     this._super.apply(this, arguments);
