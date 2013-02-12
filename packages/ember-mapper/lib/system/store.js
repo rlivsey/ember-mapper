@@ -6,7 +6,8 @@ require("ember-mapper/system/model");
 // default adapter is RESTAdapter
 require("ember-mapper/adapters/rest_adapter");
 
-var get = Ember.get;
+var get = Ember.get,
+    set = Ember.set;
 
 EM.Store = Ember.Object.extend({
   adapter: EM.RESTAdapter,
@@ -95,7 +96,7 @@ EM.Store = Ember.Object.extend({
     var record, adapter;
 
     record = this.fetchFromCache(id);
-    if (record) {
+    if (record && get(record, "hasFullContent")) {
       return record;
     }
 
@@ -116,6 +117,7 @@ EM.Store = Ember.Object.extend({
   },
 
   didFindOne: function(record, mapper, proxy) {
+    set(record, "hasFullContent", true);
     proxy.set("content", record);
     proxy.trigger("didLoad");
   },

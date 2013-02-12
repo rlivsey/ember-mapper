@@ -9,6 +9,10 @@ EM.ModelLifecycle = Ember.Mixin.create({
   isDeleting: false,
   isError:    false,
 
+  // WIP - set to true in findOne so we can detect models
+  // which have had full data vs preview/partials from findMany
+  hasFullContent: false,
+
   init: function() {
     this._super.apply(this, arguments);
 
