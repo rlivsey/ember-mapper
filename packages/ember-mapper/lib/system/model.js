@@ -8,9 +8,9 @@ EM.nameForModel = function(type) {
 
   Ember.assert("Your model must not be anonymous. It was " + type, typeString.charAt(0) !== '(');
 
-  // use the last part of the name as the URL
+  // use the last part of the class name
   var parts = typeString.split(".");
-  var name = parts[parts.length - 1].toLowerCase();
+  var name = parts[parts.length - 1].underscore().camelize();
 
   return name;
 };
