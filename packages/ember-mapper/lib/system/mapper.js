@@ -220,6 +220,7 @@ EM.Mapper = Ember.Object.extend({
 
   _deserializeAssociations: function(hash, type, configs, serializer, attributes) {
     var container = get(this, "container");
+    var self      = this;
 
     get(type, "associations").forEach(function(name, meta) {
       var mapper, config, embeds, key, itemStore, associationHash, value;
@@ -233,16 +234,10 @@ EM.Mapper = Ember.Object.extend({
         itemStore = config.get("store");
         mapper    = config.get("mapper");
       }
+
       itemStore = itemStore || EM.storeFor(meta.type, container);
       mapper    = mapper    || mapperFor(meta.type, container);
-
-      key = keyFromConfig(config, name);
-
-      if (embeds) {
-        key = serializer.keyForHasManyEmbedded(type, key);
-      } else {
-        key = serializer.keyForHasMany(type, key);
-      }
+      key       = self._keyForAssociation(serializer, meta, embeds, type, keyFromConfig(config, name));
 
       associationHash = hash[key];
       if (!associationHash) {
@@ -269,6 +264,22 @@ EM.Mapper = Ember.Object.extend({
 
       attributes[name] = value;
     });
+  },
+
+  _keyForAssociation: function(serializer, meta, embedded, type, key) {
+    if (embedded) {
+      if (meta.isOneAssociation) {
+        return serializer.keyForHasOneEmbedded(type, key);
+      } else {
+        return serializer.keyForHasManyEmbedded(type, key);
+      }
+    } else {
+      if (meta.isOneAssociation) {
+        return serializer.keyForHasOne(type, key);
+      } else {
+        return serializer.keyForHasMany(type, key);
+      }
+    }
   }
 
 });
