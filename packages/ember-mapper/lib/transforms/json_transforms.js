@@ -2,10 +2,10 @@ var none = Ember.isNone;
 
 EM.JSONTransforms = {
   array: {
-    from: function(serialized) {
+    deserialize: function(serialized) {
       return (Ember.isArray(serialized) ? serialized : null);
     },
-    to: function(deserialized){
+    serialize: function(deserialized){
       return (Ember.isArray(deserialized) ? deserialized : null);
     }
   },
