@@ -1,6 +1,15 @@
 var none = Ember.isNone;
 
 EM.JSONTransforms = {
+  array: {
+    from: function(serialized) {
+      return (Ember.isArray(serialized) ? serialized : null);
+    },
+    to: function(deserialized){
+      return (Ember.isArray(deserialized) ? deserialized : null);
+    }
+  },
+
   string: {
     deserialize: function(serialized) {
       return none(serialized) ? null : String(serialized);
