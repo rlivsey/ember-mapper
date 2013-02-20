@@ -46,7 +46,7 @@ EM.Model.hasOne = function(type, options) {
 
   return Ember.computed(function(key, value, oldValue) {
     if (arguments.length > 1) {
-      if (!(value instanceof Ember.Object)) {
+      if (!(value instanceof Ember.Object) && value) {
         value = type.create(value);
       }
     }
