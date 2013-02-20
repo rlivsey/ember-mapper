@@ -50,6 +50,16 @@ EM.Store = Ember.Object.extend({
     return adapter;
   }).property("adapter"),
 
+  load: function(data, mapper) {
+    mapper = this.getMapper(mapper);
+    if (Ember.isArray(data)) {
+      var store = this;
+      return data.map(function(item) { return mapper.deserialize(item, store); });
+    } else {
+      return mapper.deserialize(data, this);
+    }
+  },
+
   find: function(id_or_query, mapper) {
     if ("object" === typeof id_or_query) {
       return this.findQuery(id_or_query, mapper);
