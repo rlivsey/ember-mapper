@@ -95,6 +95,7 @@ EM.Mapper = Ember.Object.extend({
       embeds      = !config || config.embedded !== false;
       polymorphic = config && config.polymorphic === true;
 
+      if (value === undefined) { return; }
       if (skipSerialize(config)) { return; }
 
       if (config) {
