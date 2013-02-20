@@ -184,6 +184,7 @@ EM.Store = Ember.Object.extend({
   },
 
   didCreateRecord: function(mapper, record) {
+    this._identityMap.store(record);
     record.trigger("didCreate");
   },
 
@@ -200,6 +201,7 @@ EM.Store = Ember.Object.extend({
   },
 
   didUpdateRecord: function(mapper, record) {
+    this._identityMap.store(record);
     record.trigger("didUpdate");
   },
 

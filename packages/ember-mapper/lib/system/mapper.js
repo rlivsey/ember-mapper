@@ -177,7 +177,7 @@ EM.Mapper = Ember.Object.extend({
     });
   },
 
-  deserialize: function(hash, store) {
+  deserialize: function(hash, store, record) {
     var serializer = get(this, "serializer"),
         type       = get(this, "model"),
         configs    = get(this, "configuration"),
@@ -193,8 +193,7 @@ EM.Mapper = Ember.Object.extend({
 
     // should we know about the store & cache here?
     // probably not, but lets us fetch & update the identity map
-    var record;
-    if (attributes.id && store) {
+    if (!record && attributes.id && store) {
       record = store.prefetchFromCache(attributes.id);
     }
 
