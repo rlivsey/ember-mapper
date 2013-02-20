@@ -86,7 +86,7 @@ EM.RESTAdapter = EM.Adapter.extend({
     });
   },
 
-  didError: function(store, maper, record, xhr) {
+  didError: function(store, mapper, record, xhr) {
     if (xhr.status === 422) {
       var data = JSON.parse(xhr.responseText);
       store.recordWasInvalid(mapper, record, data['errors']);
