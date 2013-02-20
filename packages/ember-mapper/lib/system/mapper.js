@@ -246,6 +246,7 @@ EM.Mapper = Ember.Object.extend({
       if (polymorphic) {
         var polyKey = serializer.typeKeyForPolymorphicHasOne(type, name);
         itemType = hash[polyKey];
+        if (!itemType) { return; }
       } else {
         itemType = meta.type;
       }
