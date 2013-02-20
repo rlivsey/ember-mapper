@@ -1,12 +1,15 @@
 var get = Ember.get;
 
-Ember.Route.reopen({
-
+var StoreMixin = Ember.Mixin.create({
   storeFor: function(name) {
     var container = get(this, 'container');
     return EM.storeFor(name, container);
-  },
+  }
+});
 
+Ember.ControllerMixin.reopen(StoreMixin);
+
+Ember.Route.reopen(StoreMixin, {
   model: function(params) {
     var match, name, sawParams, value;
 
