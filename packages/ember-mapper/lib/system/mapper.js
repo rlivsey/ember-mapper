@@ -2,6 +2,7 @@ require("ember-mapper/system/model");
 require("ember-mapper/serializers/json_serializer");
 
 // TODO - the mappers are tied in with everything a bit too much
+// TODO - serializing/deserializing should delegate to attr/hasOne/hasMany classes as opposed to them just holding config
 
 var get = Ember.get,
     set = Ember.set;
@@ -85,13 +86,14 @@ EM.Mapper = Ember.Object.extend({
   _serializeAssociations: function(model, configs, serializer, attributes) {
     var type      = model.constructor,
         container = get(this, "container"),
-        value, config, key, embeds, mapperName;
+        value, config, key, embeds, polymorphic, mapperName;
 
     model.eachAssociation(function(name, meta){
-      value  = model.get(name);
-      config = configs.get(name);
-      key    = keyFromConfig(config, name);
-      embeds = !config || config.embedded !== false;
+      value       = model.get(name);
+      config      = configs.get(name);
+      key         = keyFromConfig(config, name);
+      embeds      = !config || config.embedded !== false;
+      polymorphic = config && config.polymorphic === true;
 
       if (skipSerialize(config)) { return; }
 
@@ -104,6 +106,11 @@ EM.Mapper = Ember.Object.extend({
           value = mapperFor(mapperName || value.constructor, container).serialize(value);
           key   = serializer.keyForHasOneEmbedded(type, key);
         } else {
+          if (polymorphic) {
+            var polyKey   = serializer.typeKeyForPolymorphicHasOne(type, key);
+            var polyValue = serializer.valueForPolymorphicType(value, key);
+            attributes[polyKey] = polyValue;
+          }
           value = value.get("id");
           key   = serializer.keyForHasOne(type, key);
         }
@@ -223,10 +230,11 @@ EM.Mapper = Ember.Object.extend({
     var self      = this;
 
     get(type, "associations").forEach(function(name, meta) {
-      var mapper, config, embeds, key, itemStore, associationHash, value;
+      var mapper, config, embeds, key, itemStore, associationHash, value, polymorphic, itemType;
 
-      config = configs.get(name);
-      embeds = !config || config.get("embedded") !== false;
+      config      = configs.get(name);
+      embeds      = !config || config.get("embedded") !== false;
+      polymorphic = config && config.get("polymorphic") === true;
 
       if (skipDeserialize(config)) { return; }
 
@@ -235,8 +243,15 @@ EM.Mapper = Ember.Object.extend({
         mapper    = config.get("mapper");
       }
 
-      itemStore = itemStore || EM.storeFor(meta.type, container);
-      mapper    = mapper    || mapperFor(meta.type, container);
+      if (polymorphic) {
+        var polyKey = serializer.typeKeyForPolymorphicHasOne(type, name);
+        itemType = hash[polyKey];
+      } else {
+        itemType = meta.type;
+      }
+
+      itemStore = itemStore || EM.storeFor(itemType, container);
+      mapper    = mapper    || mapperFor(itemType, container);
       key       = self._keyForAssociation(serializer, meta, embeds, type, keyFromConfig(config, name));
 
       associationHash = hash[key];

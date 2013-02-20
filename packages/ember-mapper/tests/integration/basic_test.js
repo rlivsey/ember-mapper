@@ -24,27 +24,44 @@ test("Mapping to from and back again", function() {
     name: EM.Model.attr("string")
   });
 
+  App.Foo = EM.Model.extend({
+    name: EM.Model.attr("string")
+  });
+
   App.Person = EM.Model.extend({
     name:      EM.Model.attr("string"),
     someValue: EM.Model.attr("string"),
     address:   EM.Model.hasOne(App.Address),
     addresses: EM.Model.hasMany(App.Address),
-    things:    EM.Model.hasMany(App.Thing)
+    things:    EM.Model.hasMany(App.Thing),
+    poly:      EM.Model.hasOne("polymorph") // name is ignored for polymorphic currently
   });
+
+  container.register(":person", App.Person);
+  container.register(":thing", App.Thing);
+  container.register(":foo", App.Foo);
+  container.register(":address", App.Address);
 
   var person   = App.Person.create({name: "Bob Johnson", someValue: "Thing"});
   var address1 = App.Address.create({street: "1 Acacia Avenue"});
   var address2 = App.Address.create({street: "2 Acacia Avenue"});
   var thing    = App.Thing.create({id: "123", name: "A Thing"});
+  var poly     = App.Foo.create({id: "69", name: "Polymorph"});
+
+  // make sure poly's in the identity map
+  // TODO - use load or something to warm the cache
+  EM.storeFor("foo", container)._identityMap.store(poly);
 
   person.set("address", address1);
   person.set("addresses", [address1, address2]);
   person.set("things", [thing]);
+  person.set("poly", poly);
 
   App.PersonMapper = EM.Mapper.extend({
     name:    EM.Mapper.attr({key: "fullName"}),
     address: EM.Mapper.hasOne({key: "myAddress"}),
-    things:  EM.Mapper.hasMany({embedded: false, sideload: true})
+    things:  EM.Mapper.hasMany({embedded: false, sideload: true}),
+    poly:    EM.Mapper.hasOne({polymorphic: true, embedded: false})
   });
 
   container.register("mapper:person", App.PersonMapper);
@@ -62,7 +79,9 @@ test("Mapping to from and back again", function() {
       {street: "1 Acacia Avenue"},
       {street: "2 Acacia Avenue"}
     ],
-    thing_ids: ["123"]
+    thing_ids: ["123"],
+    poly_id: "69",
+    poly_type: "foo"
   });
 
   var deserialized = mapper.deserialize(serialized);
@@ -74,6 +93,10 @@ test("Mapping to from and back again", function() {
 
   equal(deserialized.get("name"), "Bob Johnson", "has the name back");
   equal(deserialized.get("someValue"), "Thing", "has the value back");
+
+  equal(deserialized.get("poly.name"), "Polymorph");
+  equal(deserialized.get("poly.id"),   "69");
+  equal(deserialized.get("poly") instanceof App.Foo, true);
 
   mapper.sideload({
     things: [{

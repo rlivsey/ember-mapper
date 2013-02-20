@@ -54,6 +54,14 @@ EM.JSONSerializer = EM.Serializer.extend({
     return decamelize(name) + "_id";
   },
 
+  typeKeyForPolymorphicHasOne: function(type, name) {
+    return decamelize(name) + "_type";
+  },
+
+  valueForPolymorphicType: function(type, name) {
+    return this.rootForType(type.constructor);
+  },
+
   keyForHasMany: function(type, name) {
     return decamelize(this.singularize(name)) + "_ids";
   },
