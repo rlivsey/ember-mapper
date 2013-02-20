@@ -52,7 +52,11 @@ EM.Model.attr = function(type, options) {
     }
 
     if (value === undefined) {
-      value = options.defaultValue;
+      if (typeof options.defaultValue === "function") {
+        value = options.defaultValue.call(this);
+      } else {
+        value = options.defaultValue;
+      }
     }
 
     return value;

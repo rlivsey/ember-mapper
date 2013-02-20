@@ -67,6 +67,17 @@ test("attributes honor default values", function() {
   deepEqual(attrs, {name: "Ted"});
 });
 
+test("default value can be a function", function() {
+  Person = EM.Model.extend({
+    age: EM.Model.attr('string', {defaultValue: function(){ return 123; }})
+  });
+
+  var person = Person.create();
+  var attrs = person.attributes();
+
+  deepEqual(attrs, {age: 123});
+});
+
 module("EM.Model updating", {
   setup: function() {
     Person = EM.Model.extend({
