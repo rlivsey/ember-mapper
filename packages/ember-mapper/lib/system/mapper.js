@@ -390,7 +390,7 @@ var mapperFor = function(name, container) {
   var mapper = container.lookup(lookupName);
 
   if (!type) {
-    type = container.lookup(":"+name);
+    type = container.lookup("model:"+name);
     Ember.assert("No mapper model found for " + name, type);
     type = type.constructor; // we have an instance, need the class
   }

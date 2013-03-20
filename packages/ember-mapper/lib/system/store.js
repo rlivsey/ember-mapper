@@ -252,7 +252,7 @@ EM.storeFor = function(name, container) {
   }
 
   if (!type) {
-    type = container.lookup(":"+name);
+    type = container.lookup("model:"+name);
     // this assert should probably be in the Store
     Ember.assert("No model found for " + name, type);
     type = type.constructor;

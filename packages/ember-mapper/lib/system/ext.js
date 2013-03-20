@@ -31,3 +31,12 @@ Ember.Route.reopen(StoreMixin, {
     return store.find(value);
   }
 });
+
+// models are plain classes on the app - IE model:person -> App.Person
+Ember.DefaultResolver.reopen({
+  resolveModel: function(parsedName) {
+    var className = Ember.String.classify(parsedName.name),
+        factory = Ember.get(parsedName.root, className);
+    if (factory) { return factory; }
+  }
+});
