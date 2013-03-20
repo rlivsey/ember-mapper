@@ -104,7 +104,9 @@ EM.Mapper = Ember.Object.extend({
 
       if (meta.isOneAssociation) {
         if (embeds) {
-          value = mapperFor(mapperName || value.constructor, container).serialize(value);
+          if (value) {
+            value = mapperFor(mapperName || value.constructor, container).serialize(value);
+          }
           key   = serializer.keyForHasOneEmbedded(type, key);
         } else {
           if (polymorphic) {
@@ -112,11 +114,13 @@ EM.Mapper = Ember.Object.extend({
             var polyValue = serializer.valueForPolymorphicType(value, key);
             attributes[polyKey] = polyValue;
           }
-          value = value.get("id");
-          key   = serializer.keyForHasOne(type, key);
+          if (value) {
+            value = value.get("id");
+          }
+          key = serializer.keyForHasOne(type, key);
         }
       } else {
-        value = value.map(function(item) {
+        value = (value || []).map(function(item) {
           var itemMapper;
           if (embeds) {
             // TODO - could check whether they are all the same type and only lookup the mapper once
