@@ -73,6 +73,6 @@ EM.Model.hasMany = function(type, options) {
         }
       }
     }
-    return value;
+    return value || [];
   }).property().meta(meta);
 };
