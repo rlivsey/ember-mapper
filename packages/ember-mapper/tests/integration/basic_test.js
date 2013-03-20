@@ -37,10 +37,10 @@ test("Mapping to from and back again", function() {
     poly:      EM.Model.hasOne("polymorph") // name is ignored for polymorphic currently
   });
 
-  container.register(":person", App.Person);
-  container.register(":thing", App.Thing);
-  container.register(":foo", App.Foo);
-  container.register(":address", App.Address);
+  container.register("model:person", App.Person);
+  container.register("model:thing", App.Thing);
+  container.register("model:foo", App.Foo);
+  container.register("model:address", App.Address);
 
   var person   = App.Person.create({name: "Bob Johnson", someValue: "Thing"});
   var address1 = App.Address.create({street: "1 Acacia Avenue"});
